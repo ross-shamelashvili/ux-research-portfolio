@@ -1,11 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
 import { Badge } from '../ui/Badge';
-import { Project, methodologyLabels } from '@/lib/types';
+import { Project, methodologyLabels, categoryLabels } from '@/lib/types';
 
 interface ProjectCardProps {
   project: Project;
@@ -19,55 +18,64 @@ export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.1 }}
+      className="group h-full"
     >
-      <Link href={`/projects/${project.slug}`} className="group block">
-        <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-[var(--surface)]">
-          {/* Placeholder gradient for missing images */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--primary-light)] opacity-20" />
+      <Link href={`/projects/${project.slug}`} className="block h-full">
+        <div className="h-full bg-[var(--surface)] rounded-xl overflow-hidden border border-[var(--border)] hover:border-[var(--primary)]/50 hover:shadow-lg transition-all duration-300">
+          {/* Placeholder Area */}
+          <div className="relative aspect-[16/10] bg-gradient-to-br from-[var(--primary)]/15 via-[var(--primary)]/5 to-[var(--surface)] overflow-hidden">
+            {/* Large initial letter as placeholder */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-7xl font-bold text-[var(--primary)]/20 select-none">
+                {project.title.charAt(0)}
+              </span>
+            </div>
 
-          {/* Image would go here when available */}
-          {project.thumbnail && project.thumbnail !== '/images/projects/healthcare-thumb.jpg' && (
-            <Image
-              src={project.thumbnail}
-              alt={project.title}
-              fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-          )}
+            {/* Overlay on hover */}
+            <div className="absolute inset-0 bg-[var(--primary)]/0 group-hover:bg-[var(--primary)]/10 transition-colors duration-300" />
 
-          {/* Overlay with icon */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            {/* Category badge */}
+            <div className="absolute top-4 left-4">
+              <span className="px-3 py-1.5 bg-[var(--background)]/95 backdrop-blur-sm rounded-full text-xs font-medium text-[var(--text-primary)] shadow-sm border border-[var(--border)]">
+                {categoryLabels[project.category]}
+              </span>
+            </div>
 
-          {/* View Project Arrow */}
-          <div className="absolute top-4 right-4 p-2 rounded-full bg-white/90 text-[var(--primary)] opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-            <ArrowUpRight className="w-4 h-4" />
+            {/* Year badge */}
+            <div className="absolute top-4 right-4">
+              <span className="px-2.5 py-1 bg-[var(--background)]/95 backdrop-blur-sm rounded-full text-xs text-[var(--text-secondary)]">
+                {project.year}
+              </span>
+            </div>
+
+            {/* Arrow indicator */}
+            <div className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-[var(--primary)] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg">
+              <ArrowUpRight className="w-5 h-5" />
+            </div>
           </div>
 
-          {/* Project Title Overlay (shown on hover for visual hierarchy) */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-            <span className="text-white font-medium">View Case Study</span>
-          </div>
-        </div>
+          {/* Content */}
+          <div className="p-5">
+            <h3 className="text-lg font-semibold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors line-clamp-1 mb-2">
+              {project.title}
+            </h3>
 
-        <div className="mt-4 space-y-2">
-          <h3 className="text-xl font-semibold text-[var(--text-primary)] group-hover:text-[var(--primary)] transition-colors">
-            {project.title}
-          </h3>
-          <p className="text-[var(--text-secondary)] text-sm line-clamp-2">
-            {project.description}
-          </p>
-          <div className="flex flex-wrap gap-2 pt-2">
-            {project.methodologies.slice(0, 3).map((method) => (
-              <Badge key={method} variant="secondary" size="sm">
-                {methodologyLabels[method]}
-              </Badge>
-            ))}
-            {project.methodologies.length > 3 && (
-              <Badge variant="secondary" size="sm">
-                +{project.methodologies.length - 3}
-              </Badge>
-            )}
+            <p className="text-[var(--text-secondary)] text-sm line-clamp-2 mb-4">
+              {project.description}
+            </p>
+
+            <div className="flex flex-wrap gap-2">
+              {project.methodologies.slice(0, 3).map((method) => (
+                <Badge key={method} variant="secondary" size="sm">
+                  {methodologyLabels[method]}
+                </Badge>
+              ))}
+              {project.methodologies.length > 3 && (
+                <Badge variant="secondary" size="sm">
+                  +{project.methodologies.length - 3}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
       </Link>

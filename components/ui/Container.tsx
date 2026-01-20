@@ -12,7 +12,16 @@ const sizeStyles = {
 
 export function Container({ children, className = '', size = 'default' }: ContainerProps) {
   return (
-    <div className={`mx-auto px-4 sm:px-6 lg:px-8 ${sizeStyles[size]} ${className}`}>
+    <div
+      className={`${sizeStyles[size]} ${className}`}
+      style={{
+        width: '100%',
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        paddingLeft: '1.5rem',
+        paddingRight: '1.5rem'
+      }}
+    >
       {children}
     </div>
   );

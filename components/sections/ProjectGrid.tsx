@@ -2,16 +2,16 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Filter } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { ProjectCard } from './ProjectCard';
 import { Container } from '../ui/Container';
-import { Section, SectionHeader } from '../ui/Section';
-import { Badge } from '../ui/Badge';
-import { Project, ProjectCategory, Methodology, categoryLabels, methodologyLabels } from '@/lib/types';
+import { Button } from '../ui/Button';
+import { Project, ProjectCategory, Methodology, categoryLabels } from '@/lib/types';
 
 interface ProjectGridProps {
   projects: Project[];
   showFilters?: boolean;
+  initialLimit?: number;
   title?: string;
   subtitle?: string;
 }
@@ -21,161 +21,137 @@ type FilterType = 'all' | ProjectCategory | Methodology;
 export function ProjectGrid({
   projects,
   showFilters = true,
-  title = 'Featured Work',
-  subtitle = 'A selection of UX research projects showcasing my approach to understanding users and driving product decisions.',
+  initialLimit = 6,
+  title = 'UX Experience',
+  subtitle = 'Case studies showcasing my approach to user research and product discovery.',
 }: ProjectGridProps) {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
-  const [filterType, setFilterType] = useState<'category' | 'methodology'>('category');
+  const [showAll, setShowAll] = useState(false);
 
   const categories = useMemo(() => {
-    const cats = [...new Set(projects.map((p) => p.category))];
-    return cats;
-  }, [projects]);
-
-  const methodologies = useMemo(() => {
-    const methods = [...new Set(projects.flatMap((p) => p.methodologies))];
-    return methods;
+    return [...new Set(projects.map((p) => p.category))];
   }, [projects]);
 
   const filteredProjects = useMemo(() => {
     if (activeFilter === 'all') return projects;
 
-    if (filterType === 'category') {
+    // Check if it's a category
+    if (categories.includes(activeFilter as ProjectCategory)) {
       return projects.filter((p) => p.category === activeFilter);
-    } else {
-      return projects.filter((p) =>
-        p.methodologies.includes(activeFilter as Methodology)
-      );
     }
-  }, [projects, activeFilter, filterType]);
 
-  const handleFilterClick = (filter: FilterType) => {
-    setActiveFilter(filter);
-  };
+    // Otherwise it's a methodology
+    return projects.filter((p) =>
+      p.methodologies.includes(activeFilter as Methodology)
+    );
+  }, [projects, activeFilter, categories]);
 
-  const switchFilterType = (type: 'category' | 'methodology') => {
-    setFilterType(type);
-    setActiveFilter('all');
-  };
+  const displayedProjects = showAll
+    ? filteredProjects
+    : filteredProjects.slice(0, initialLimit);
+
+  const hasMore = filteredProjects.length > initialLimit && !showAll;
 
   return (
-    <Section id="work">
-      <Container>
-        <SectionHeader title={title} subtitle={subtitle} />
+    <section id="work" className="py-20 md:py-28 overflow-hidden">
+      <Container className="overflow-hidden">
+        {/* Section Header */}
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-[var(--text-primary)]">
+            {title}
+          </h2>
+          <p className="mt-4 text-lg text-[var(--text-secondary)] max-w-2xl mx-auto">
+            {subtitle}
+          </p>
+        </div>
 
         {showFilters && (
-          <div className="mb-8 space-y-4">
-            {/* Filter Type Toggle */}
-            <div className="flex items-center gap-4">
-              <Filter className="w-4 h-4 text-[var(--text-secondary)]" />
-              <div className="flex gap-2">
-                <button
-                  onClick={() => switchFilterType('category')}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                    filterType === 'category'
-                      ? 'bg-[var(--primary)] text-white'
-                      : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
-                  }`}
-                >
-                  By Category
-                </button>
-                <button
-                  onClick={() => switchFilterType('methodology')}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
-                    filterType === 'methodology'
-                      ? 'bg-[var(--primary)] text-white'
-                      : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
-                  }`}
-                >
-                  By Methodology
-                </button>
-              </div>
-            </div>
-
-            {/* Filter Options */}
-            <div className="flex flex-wrap gap-2">
+          <div className="mb-10">
+            {/* Filter pills - centered */}
+            <div className="flex flex-wrap justify-center gap-2">
               <button
-                onClick={() => handleFilterClick('all')}
-                className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                onClick={() => { setActiveFilter('all'); setShowAll(false); }}
+                className={`px-5 py-2.5 text-sm font-medium rounded-full transition-all duration-200 ${
                   activeFilter === 'all'
-                    ? 'bg-[var(--primary)] text-white'
-                    : 'bg-[var(--surface)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
+                    ? 'bg-[var(--primary)] text-white shadow-md'
+                    : 'bg-[var(--surface)] text-[var(--text-secondary)] hover:bg-[var(--border)] border border-[var(--border)]'
                 }`}
               >
-                All
+                All Projects
               </button>
 
-              {filterType === 'category'
-                ? categories.map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => handleFilterClick(cat)}
-                      className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                        activeFilter === cat
-                          ? 'bg-[var(--primary)] text-white'
-                          : 'bg-[var(--surface)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
-                      }`}
-                    >
-                      {categoryLabels[cat]}
-                    </button>
-                  ))
-                : methodologies.map((method) => (
-                    <button
-                      key={method}
-                      onClick={() => handleFilterClick(method)}
-                      className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
-                        activeFilter === method
-                          ? 'bg-[var(--primary)] text-white'
-                          : 'bg-[var(--surface)] text-[var(--text-secondary)] hover:bg-[var(--border)]'
-                      }`}
-                    >
-                      {methodologyLabels[method]}
-                    </button>
-                  ))}
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => { setActiveFilter(cat); setShowAll(false); }}
+                  className={`px-5 py-2.5 text-sm font-medium rounded-full transition-all duration-200 ${
+                    activeFilter === cat
+                      ? 'bg-[var(--primary)] text-white shadow-md'
+                      : 'bg-[var(--surface)] text-[var(--text-secondary)] hover:bg-[var(--border)] border border-[var(--border)]'
+                  }`}
+                >
+                  {categoryLabels[cat]}
+                </button>
+              ))}
             </div>
-
-            {/* Results Count */}
-            <p className="text-sm text-[var(--text-secondary)]">
-              Showing {filteredProjects.length} of {projects.length} projects
-            </p>
           </div>
         )}
 
         {/* Project Grid */}
-        <motion.div
-          layout
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
-          <AnimatePresence mode="popLayout">
-            {filteredProjects.map((project, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AnimatePresence mode="wait">
+            {displayedProjects.map((project, index) => (
               <motion.div
                 key={project.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
               >
                 <ProjectCard project={project} index={index} />
               </motion.div>
             ))}
           </AnimatePresence>
-        </motion.div>
+        </div>
+
+        {/* View All / View Less button */}
+        {(hasMore || showAll) && filteredProjects.length > initialLimit && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-12 text-center"
+          >
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setShowAll(!showAll)}
+              rightIcon={
+                <ChevronDown
+                  className={`w-4 h-4 transition-transform duration-300 ${showAll ? 'rotate-180' : ''}`}
+                />
+              }
+            >
+              {showAll
+                ? 'Show Less'
+                : `View All ${filteredProjects.length} Projects`}
+            </Button>
+          </motion.div>
+        )}
 
         {filteredProjects.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-[var(--text-secondary)]">
+          <div className="text-center py-16">
+            <p className="text-[var(--text-secondary)] mb-4">
               No projects found with the selected filter.
             </p>
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setActiveFilter('all')}
-              className="mt-4 text-[var(--primary)] hover:underline"
             >
               Clear filter
-            </button>
+            </Button>
           </div>
         )}
       </Container>
-    </Section>
+    </section>
   );
 }
